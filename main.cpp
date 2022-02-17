@@ -15,6 +15,8 @@
 using namespace std;
 
 HWND hwnd;
+int times = 0;
+float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 void DrawPixels(HWND hwnd)
 {
@@ -22,10 +24,18 @@ void DrawPixels(HWND hwnd)
 	ImGui_ImplGDI_NewFrame();
 	ImGui::NewFrame();
 	if (ImGui::Begin("Hello, world!"), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize) {
-		ImGui::Button("Button 1");
-		ImGui::Button("Button 2");
-		ImGui::Button("Button 3");
-		ImGui::Button("Button 4");
+		//ImGui::SetWindowPos(ImVec2(0, 0));
+		//ImGui::SetWindowSize(ImVec2(WIDTH, HEIGHT));
+		if (ImGui::Button("Button 1")) {
+			SetWindowTextA(
+				hwnd,
+				("Button Pressed " + to_string(++times) + " times.").c_str()
+			);
+		}
+		if (ImGui::ColorEdit4("Background", color, 0)) {
+			ImGuiStyle& style = ImGui::GetStyle();
+			style.Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+		}
 		ImGui::End();
 	}
 	ImGui::EndFrame();
@@ -108,7 +118,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	style.TabRounding = 6.0f;
 	style.WindowTitleAlign.x = 0.5f;
 
-	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.0f, 162.0f / 255.0f, 232.0f / 255.0f, 1.0f);
 	style.Colors[ImGuiCol_FrameBgHovered] = style.Colors[ImGuiCol_FrameBgActive];
 	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.0f, 105.0f / 255.0f, 150.0f / 255.0f, 1.0f);
@@ -118,13 +127,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 242.0f / 255.0f, 0.0f, 1.0f);
 	style.Colors[ImGuiCol_CheckMark] = style.Colors[ImGuiCol_FrameBgActive];
-
-	// "Fix" Bug (Convert all RGB to BGR)
-	for (size_t i = 0; i < ImGuiCol_COUNT; i++) {
-		float temp_color = style.Colors[i].x;
-		style.Colors[i].x = style.Colors[i].z;
-		style.Colors[i].z = temp_color;
-	}
+	style.Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
 
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplGDI_Init();
