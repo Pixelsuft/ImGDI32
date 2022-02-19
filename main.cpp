@@ -57,12 +57,27 @@ void DrawPixels(HWND hwnd)
 		ImGui::Text("Styles: ");
 		if (ImGui::Button("Dark")) {
 			ImGui::StyleColorsDark();
+			ImGuiStyle& style = ImGui::GetStyle();
+			color[0] = style.Colors[ImGuiCol_WindowBg].x;
+			color[1] = style.Colors[ImGuiCol_WindowBg].y;
+			color[2] = style.Colors[ImGuiCol_WindowBg].z;
+			color[3] = style.Colors[ImGuiCol_WindowBg].w;
 		}
 		if (ImGui::Button("Light")) {
 			ImGui::StyleColorsLight();
+			ImGuiStyle& style = ImGui::GetStyle();
+			color[0] = style.Colors[ImGuiCol_WindowBg].x;
+			color[1] = style.Colors[ImGuiCol_WindowBg].y;
+			color[2] = style.Colors[ImGuiCol_WindowBg].z;
+			color[3] = style.Colors[ImGuiCol_WindowBg].w;
 		}
 		if (ImGui::Button("Classic")) {
 			ImGui::StyleColorsClassic();
+			ImGuiStyle& style = ImGui::GetStyle();
+			color[0] = style.Colors[ImGuiCol_WindowBg].x;
+			color[1] = style.Colors[ImGuiCol_WindowBg].y;
+			color[2] = style.Colors[ImGuiCol_WindowBg].z;
+			color[3] = style.Colors[ImGuiCol_WindowBg].w;
 		}
 		if (ImGui::Button("My Style")) {
 			ImGui::StyleColorsDark();
@@ -84,6 +99,8 @@ void DrawPixels(HWND hwnd)
 			//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 			//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 242.0f / 255.0f, 0.0f, 1.0f);
 			style.Colors[ImGuiCol_CheckMark] = style.Colors[ImGuiCol_FrameBgActive];
+			color[0] = color[1] = color[2] = 0.0f;
+			color[3] = 1.0f;
 			style.Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
 		}
 		
