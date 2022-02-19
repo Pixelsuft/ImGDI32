@@ -9,23 +9,33 @@
 #include <imgui_impl_gdi.h>
 #pragma comment(linker, "/SUBSYSTEM:WINDOWS")
 
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 1024
+#define HEIGHT 768
 
 using namespace std;
 
 HWND hwnd;
 int times = 0;
 float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+float _fps = 60.0f;
+float _dt = 1000.0f / _fps;
+bool is_open = true;
+bool show_demo_window = false;
+bool can_show_demo = true;
 
 void DrawPixels(HWND hwnd)
 {
 	ImGui_ImplWin32_NewFrame();
 	ImGui_ImplGDI_NewFrame();
 	ImGui::NewFrame();
-	if (ImGui::Begin("Hello, world!"), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize) {
-		//ImGui::SetWindowPos(ImVec2(0, 0));
-		//ImGui::SetWindowSize(ImVec2(WIDTH, HEIGHT));
+	ImGuiIO& io = ImGui::GetIO();
+	io.Framerate = _fps;
+	io.DeltaTime = _dt;
+	if (ImGui::Begin(
+		"Hello, world!",
+		&is_open,
+		ImGuiWindowFlags_NoScrollbar
+	)) {
 		if (ImGui::Button("Button 1")) {
 			SetWindowTextA(
 				hwnd,
@@ -36,7 +46,62 @@ void DrawPixels(HWND hwnd)
 			ImGuiStyle& style = ImGui::GetStyle();
 			style.Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
 		}
+		ImGui::Checkbox("Show Demo Window", &show_demo_window);
+		if (show_demo_window) {
+			can_show_demo = true;
+			ImGui::ShowDemoWindow(&can_show_demo);
+			if (!can_show_demo)
+				show_demo_window = false;
+		}
+		ImGui::Text(("FPS: " + to_string((int)_fps)).c_str());
+		ImGui::Text("Styles: ");
+		if (ImGui::Button("Dark")) {
+			ImGui::StyleColorsDark();
+		}
+		if (ImGui::Button("Light")) {
+			ImGui::StyleColorsLight();
+		}
+		if (ImGui::Button("Classic")) {
+			ImGui::StyleColorsClassic();
+		}
+		if (ImGui::Button("My Style")) {
+			ImGui::StyleColorsDark();
+			ImGuiStyle& style = ImGui::GetStyle();
+			style.WindowBorderSize = 0.0f;
+			style.WindowRounding = 0.0f;
+			style.ScrollbarRounding = 12.0f;
+			style.GrabRounding = 6.0f;
+			style.TabRounding = 6.0f;
+			style.WindowTitleAlign.x = 0.5f;
+
+			style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.0f, 162.0f / 255.0f, 232.0f / 255.0f, 1.0f);
+			style.Colors[ImGuiCol_FrameBgHovered] = style.Colors[ImGuiCol_FrameBgActive];
+			style.Colors[ImGuiCol_FrameBg] = ImVec4(0.0f, 105.0f / 255.0f, 150.0f / 255.0f, 1.0f);
+			style.Colors[ImGuiCol_TitleBg] = ImVec4(237.0f / 255.0f, 28.0f / 255.0f, 36.0f / 255.0f, 1.0f);
+			style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0f);
+			style.Colors[ImGuiCol_TitleBgActive] = style.Colors[ImGuiCol_TitleBg];
+			style.Colors[ImGuiCol_TitleBgCollapsed] = style.Colors[ImGuiCol_TitleBg];
+			//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 242.0f / 255.0f, 0.0f, 1.0f);
+			style.Colors[ImGuiCol_CheckMark] = style.Colors[ImGuiCol_FrameBgActive];
+			style.Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
+		}
+		
+		ImVec2 window_size = ImGui::GetWindowSize();
+		if (window_size.x < 320) {
+			window_size.x = 320;
+			ImGui::SetWindowSize(window_size);
+		}
+		if (window_size.y < 250) {
+			window_size.y = 250;
+			ImGui::SetWindowSize(window_size);
+		}
+
 		ImGui::End();
+	}
+	if (!is_open) {
+		PostQuitMessage(0);
+		ExitProcess(0);
 	}
 	ImGui::EndFrame();
 	ImGui::Render();
@@ -73,29 +138,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
 		return 0;
 	}
 
-	return DefWindowProcW(hwnd, msg, wParam, lParam);
+	return DefWindowProcA(hwnd, msg, wParam, lParam);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	PSTR lpCmdLine, INT nCmdShow) {
 
 	MSG  msg;
-	WNDCLASSW wc = { 0 };
+	WNDCLASSA wc = { 0 };
+
+	DEVMODE dm;
+	if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm)) {
+		_fps = (float)dm.dmDisplayFrequency;
+		_dt = 1000.0f / _fps;
+	}
 
 	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpszClassName = L"ImGDI32";
+	wc.lpszClassName = "ImGDI32";
 	wc.hInstance = hInstance;
 	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wc.lpfnWndProc = WndProc;
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 
-	RegisterClassW(&wc);
-	hwnd = CreateWindowW(
+	RegisterClassA(&wc);
+	hwnd = CreateWindowA(
 		wc.lpszClassName,
-		L"Hello, World!",
+		"Hello, World!",
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		200,
-		200,
+		100,
+		100,
 		WIDTH,
 		HEIGHT,
 		NULL,
@@ -109,25 +180,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	io.IniFilename = NULL;
 	io.ImeWindowHandle = hwnd;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	// Apply My Style
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.WindowBorderSize = 0.0f;
-	style.WindowRounding = 0.0f;
-	style.ScrollbarRounding = 12.0f;
-	style.GrabRounding = 6.0f;
-	style.TabRounding = 6.0f;
-	style.WindowTitleAlign.x = 0.5f;
-
-	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.0f, 162.0f / 255.0f, 232.0f / 255.0f, 1.0f);
-	style.Colors[ImGuiCol_FrameBgHovered] = style.Colors[ImGuiCol_FrameBgActive];
-	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.0f, 105.0f / 255.0f, 150.0f / 255.0f, 1.0f);
-	style.Colors[ImGuiCol_TitleBg] = ImVec4(237.0f / 255.0f, 28.0f / 255.0f, 36.0f / 255.0f, 1.0f);
-	style.Colors[ImGuiCol_TitleBgActive] = style.Colors[ImGuiCol_TitleBg];
-	style.Colors[ImGuiCol_TitleBgCollapsed] = style.Colors[ImGuiCol_TitleBg];
-	//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-	//style.Colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 242.0f / 255.0f, 0.0f, 1.0f);
-	style.Colors[ImGuiCol_CheckMark] = style.Colors[ImGuiCol_FrameBgActive];
-	style.Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
 
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplGDI_Init();
