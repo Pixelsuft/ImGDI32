@@ -11,13 +11,14 @@
 
 #define WIDTH 1024
 #define HEIGHT 768
+#define FPS_MULTIPL 5.0f
 
 using namespace std;
 
 HWND hwnd;
 int times = 0;
 float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-float _fps = 60.0f;
+float _fps = 60.0f * FPS_MULTIPL;
 float _dt = 1000.0f / _fps;
 bool is_open = true;
 bool show_demo_window = false;
@@ -30,7 +31,7 @@ void DrawPixels(HWND hwnd)
 	ImGui::NewFrame();
 	ImGuiIO& io = ImGui::GetIO();
 	io.Framerate = _fps;
-	io.DeltaTime = _dt;
+	//io.DeltaTime = _dt;
 	if (ImGui::Begin(
 		"Hello, world!",
 		&is_open,
@@ -53,7 +54,7 @@ void DrawPixels(HWND hwnd)
 			if (!can_show_demo)
 				show_demo_window = false;
 		}
-		ImGui::Text(("FPS: " + to_string((int)_fps)).c_str());
+		ImGui::Text(("Max FPS: " + to_string((int)_fps)).c_str());
 		ImGui::Text("Styles: ");
 		if (ImGui::Button("Dark")) {
 			ImGui::StyleColorsDark();
@@ -82,7 +83,7 @@ void DrawPixels(HWND hwnd)
 		if (ImGui::Button("My Style")) {
 			ImGui::StyleColorsDark();
 			ImGuiStyle& style = ImGui::GetStyle();
-			style.WindowBorderSize = 0.0f;
+			style.WindowBorderSize = 1.0f;
 			style.WindowRounding = 0.0f;
 			style.ScrollbarRounding = 12.0f;
 			style.GrabRounding = 6.0f;
@@ -103,7 +104,7 @@ void DrawPixels(HWND hwnd)
 			color[3] = 1.0f;
 			style.Colors[ImGuiCol_WindowBg] = ImVec4(color[0], color[1], color[2], color[3]);
 		}
-		
+
 		ImVec2 window_size = ImGui::GetWindowSize();
 		if (window_size.x < 320) {
 			window_size.x = 320;
@@ -134,7 +135,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
 	switch (msg) {
 	case WM_CREATE:
 
-		SetTimer(hwnd, 1, (UINT)(1000.0f / 60.0f), NULL); // 60 FPS
+		SetTimer(hwnd, 1, (UINT)(_dt), NULL);
 		break;
 
 	case WM_PAINT:
@@ -168,7 +169,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	DEVMODE dm;
 	if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm)) {
-		_fps = (float)dm.dmDisplayFrequency;
+		_fps = (float)dm.dmDisplayFrequency * FPS_MULTIPL;
 		_dt = 1000.0f / _fps;
 	}
 
