@@ -58,7 +58,7 @@ void DrawPixels(HWND hwnd)
 		if (ImGui::Button("Dark")) {
 			ImGui::StyleColorsDark();
 			ImGuiStyle& style = ImGui::GetStyle();
-			color[0] = style.Colors[ImGuiCol_WindowBg].x;
+			color[0] = style.Colors[ImGuiCol_WindowBg].x; // Sry for shitcode
 			color[1] = style.Colors[ImGuiCol_WindowBg].y;
 			color[2] = style.Colors[ImGuiCol_WindowBg].z;
 			color[3] = style.Colors[ImGuiCol_WindowBg].w;
@@ -128,7 +128,9 @@ void DrawPixels(HWND hwnd)
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
 	WPARAM wParam, LPARAM lParam) {
-	ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam)) {
+		return true;
+	}
 	switch (msg) {
 	case WM_CREATE:
 
