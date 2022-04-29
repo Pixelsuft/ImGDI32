@@ -18,8 +18,6 @@ using namespace std;
 HWND hwnd;
 int times = 0;
 float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-float _fps = 60.0f * FPS_MULTIPL;
-float _dt = 1000.0f / _fps;
 bool is_open = true;
 bool show_demo_window = false;
 bool can_show_demo = true;
@@ -30,7 +28,7 @@ void DrawPixels(HWND hwnd)
 	ImGui_ImplGDI_NewFrame();
 	ImGui::NewFrame();
 	ImGuiIO& io = ImGui::GetIO();
-	io.Framerate = _fps;
+	//io.Framerate = _fps;
 	//io.DeltaTime = _dt;
 	if (ImGui::Begin(
 		"Hello, world!",
@@ -54,7 +52,7 @@ void DrawPixels(HWND hwnd)
 			if (!can_show_demo)
 				show_demo_window = false;
 		}
-		ImGui::Text(("Max FPS: " + to_string((int)_fps)).c_str());
+		//ImGui::Text(("Max FPS: " + to_string((int)_fps)).c_str());
 		ImGui::Text("Styles: ");
 		if (ImGui::Button("Dark")) {
 			ImGui::StyleColorsDark();
@@ -133,23 +131,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg,
 		return true;
 	}
 	switch (msg) {
-	case WM_CREATE:
-
-		SetTimer(hwnd, 1, (UINT)(_dt), NULL);
-		break;
-
-	case WM_PAINT:
-
-		DrawPixels(hwnd);
-		break;
-
-	case WM_ERASEBKGND:
-		return 1; // Say we handled it.
-
-	case WM_TIMER:
-
-		RedrawWindow(hwnd, NULL, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_UPDATENOW);
-		break;
 
 	case WM_DESTROY:
 
@@ -166,12 +147,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	MSG  msg;
 	WNDCLASSA wc = { 0 };
-
-	DEVMODE dm;
-	if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm)) {
-		_fps = (float)dm.dmDisplayFrequency * FPS_MULTIPL;
-		_dt = 1000.0f / _fps;
-	}
 
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpszClassName = "ImGDI32";
@@ -204,10 +179,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplGDI_Init();
 
-	while (GetMessage(&msg, NULL, 0, 0) > 0) {
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+	while (is_open) {
+		while (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE)) {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+			if (msg.message == WM_QUIT)
+				is_open = false;
+		}
+		if (!is_open)
+			break;
+		DrawPixels(hwnd);
 	}
 
 	ImGui_ImplGDI_Shutdown();
